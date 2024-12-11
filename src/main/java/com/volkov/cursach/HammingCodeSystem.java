@@ -75,6 +75,7 @@ public class HammingCodeSystem {
 
         // Исправление ошибки
         if (errorPosition > 0 && errorPosition <= 11) {
+            System.out.println("Исправление ошибки в строке, позиция: " + errorPosition);
             received[errorPosition - 1] ^= 1;
         }
         return received;
@@ -87,14 +88,13 @@ public class HammingCodeSystem {
 
         for (int col = 0; col < cols; col++) {
             int parity = 0;
-            int errorRow = -1;
             for (int row = 0; row < rows - 1; row++) {
                 parity ^= block[row][col];
             }
             parity ^= block[rows - 1][col];
             if (parity != 0) {
-                errorRow = rows - 1;
-                block[errorRow][col] ^= 1;
+                System.out.println("Исправление ошибки в столбце: " + col);
+                block[rows - 1][col] ^= 1;
             }
         }
         return block;
@@ -208,6 +208,9 @@ public class HammingCodeSystem {
 
         System.out.println("Декодированный блок:");
         printBlock(decodedBlock);
+
+        System.out.println("Оригинальные данные для сравнения:");
+        printBlock(horizontalEncoded);
     }
 
     private static void printBlock(int[][] block) {
