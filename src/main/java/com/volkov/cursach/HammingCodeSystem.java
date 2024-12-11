@@ -24,10 +24,10 @@ public class HammingCodeSystem {
             int parity = 0;
             for (int j = 0; j < 11; j++) {
                 if (((j + 1) & (parityIndex + 1)) != 0) {
-                    parity += encoded[j]; // Сумма вместо XOR для чисел от 0 до 9
+                    parity ^= encoded[j]; // Используем XOR для битов 0 и 1
                 }
             }
-            encoded[parityIndex] = parity % 10; // Остаток от деления на 10 для однозначного числа
+            encoded[parityIndex] = parity;
         }
         return encoded;
     }
@@ -47,9 +47,9 @@ public class HammingCodeSystem {
         for (int col = 0; col < cols; col++) {
             int parity = 0;
             for (int row = 0; row < rows; row++) {
-                parity += blockWithVerticalParity[row][col];
+                parity ^= blockWithVerticalParity[row][col];
             }
-            blockWithVerticalParity[rows][col] = parity % 10; // Остаток от деления на 10
+            blockWithVerticalParity[rows][col] = parity; // XOR для вертикальных битов
         }
         return blockWithVerticalParity;
     }
@@ -65,17 +65,17 @@ public class HammingCodeSystem {
             int parity = 0;
             for (int j = 0; j < 11; j++) {
                 if (((j + 1) & (parityIndex + 1)) != 0) {
-                    parity += received[j];
+                    parity ^= received[j];
                 }
             }
-            if (parity % 10 != 0) {
+            if (parity != 0) {
                 errorPosition += parityIndex + 1;
             }
         }
 
         // Исправление ошибки
         if (errorPosition > 0 && errorPosition <= 11) {
-            received[errorPosition - 1] = (received[errorPosition - 1] + 1) % 10;
+            received[errorPosition - 1] ^= 1;
         }
         return received;
     }
@@ -89,15 +89,12 @@ public class HammingCodeSystem {
             int parity = 0;
             int errorRow = -1;
             for (int row = 0; row < rows - 1; row++) {
-                parity += block[row][col];
+                parity ^= block[row][col];
             }
-            parity = (parity + block[rows - 1][col]) % 10;
+            parity ^= block[rows - 1][col];
             if (parity != 0) {
-                for (int row = 0; row < rows - 1; row++) {
-                    if (block[row][col] != block[rows - 1][col]) {
-                        block[row][col] = (block[row][col] + 1) % 10;
-                    }
-                }
+                errorRow = rows - 1;
+                block[errorRow][col] ^= 1;
             }
         }
         return block;
@@ -107,7 +104,7 @@ public class HammingCodeSystem {
     public static int[][] decodeBlock(int[][] block) {
         boolean changed;
         int iterations = 0;
-        final int maxIterations = 1000000000; // Максимальное число итераций
+        final int maxIterations = 100; // Максимальное число итераций
 
         do {
             System.out.println("Итерация декодирования: " + (iterations + 1));
@@ -165,7 +162,7 @@ public class HammingCodeSystem {
         for (int i = 0; i < block.length; i++) {
             for (int j = 0; j < block[i].length; j++) {
                 if (random.nextDouble() < noiseProbability) {
-                    block[i][j] = random.nextInt(10); // Заменяем случайным числом от 0 до 9
+                    block[i][j] ^= 1; // Инвертируем бит
                 }
             }
         }
@@ -177,10 +174,10 @@ public class HammingCodeSystem {
         Random random = new Random();
         int[][] dataBits = new int[11][7];
 
-        // Генерация случайных данных от 0 до 9
+        // Генерация случайных данных 0 или 1
         for (int i = 0; i < dataBits.length; i++) {
             for (int j = 0; j < dataBits[i].length; j++) {
-                dataBits[i][j] = random.nextInt(10);
+                dataBits[i][j] = random.nextInt(2);
             }
         }
 
@@ -222,4 +219,3 @@ public class HammingCodeSystem {
         }
     }
 }
-
