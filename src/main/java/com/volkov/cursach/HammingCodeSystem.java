@@ -4,29 +4,29 @@ import java.util.Random;
 
 public class HammingCodeSystem {
 
-    // Кодирование одной строки с использованием кода Хэмминга (21, 11)
-
+    // Кодирование одной строки с использованием кода Хэмминга (11, 7)
     public static int[] encodeHorizontal(int[] dataBits) {
+        if (dataBits.length != 7) {
+            throw new IllegalArgumentException("Длина dataBits должна быть равна 7.");
+        }
 
-
-        int[] encoded = new int[21]; // Итоговая строка с проверочными битами
-        int[] parityPositions = {0, 1, 3, 15, 19, 20}; // Позиции проверочных битов
+        int[] encoded = new int[11]; // Итоговая строка с проверочными битами
+        int[] parityPositions = {0, 1, 3, 7}; // Позиции проверочных битов
 
         // Копируем информационные биты в закодированное сообщение
-        for (int i = 0, j = 0; i < 21; i++) {
+        for (int i = 0, j = 0; i < 11; i++) {
             if (j < parityPositions.length && parityPositions[j] == i) {
                 j++; // Пропускаем позиции для проверочных битов
             } else {
-                if (i - j < dataBits.length) {
-                    encoded[i] = dataBits[i - j];
-                }
+                encoded[i] = dataBits[i - j];
             }
         }
+
         // Вычисляем проверочные биты
         for (int i = 0; i < parityPositions.length; i++) {
             int parityIndex = parityPositions[i];
             int parity = 0;
-            for (int j = 0; j < 21; j++) {
+            for (int j = 0; j < 11; j++) {
                 // Проверяем, относится ли текущий бит к данной проверочной группе
                 if (((j + 1) & (parityIndex + 1)) != 0) {
                     parity ^= encoded[j]; // Используем XOR для расчёта чётности
@@ -38,12 +38,11 @@ public class HammingCodeSystem {
         return encoded;
     }
 
-
-    // Кодирование блока из 11 строк с вертикальными проверочными битами (11, 21)
+    // Кодирование блока из 16 строк с вертикальными проверочными битами (21, 11)
     public static int[][] encodeVertical(int[][] horizontalEncoded) {
         int rows = horizontalEncoded.length;
         int cols = horizontalEncoded[0].length;
-        int[][] blockWithVerticalParity = new int[rows][cols + 10];
+        int[][] blockWithVerticalParity = new int[rows + 5][cols]; // Добавляем 5 строк для вертикальных проверочных битов
 
         // Копируем горизонтально закодированные строки
         for (int i = 0; i < rows; i++) {
@@ -52,25 +51,28 @@ public class HammingCodeSystem {
 
         // Вычисляем вертикальные проверочные строки
         for (int col = 0; col < cols; col++) {
-            int parity = 0;
-            for (int row = 0; row < rows; row++) {
-                parity ^= blockWithVerticalParity[row][col];
+            for (int parityRow = rows; parityRow < rows + 5; parityRow++) {
+                int parity = 0;
+                for (int row = 0; row < rows; row++) {
+                    parity ^= blockWithVerticalParity[row][col];
+                }
+                blockWithVerticalParity[parityRow][col] = parity;
             }
-            blockWithVerticalParity[rows - 1][col] = parity; // XOR для вертикальных битов
         }
+
         return blockWithVerticalParity;
     }
 
-    // Декодирование строки с использованием кода Хэмминга (21, 11)
+    // Декодирование строки с использованием кода Хэмминга (11, 7)
     public static int[] decodeHorizontal(int[] received) {
-        int[] parityPositions = {0, 1, 3, 7, 15, 19, 20};
+        int[] parityPositions = {0, 1, 3, 7};
         int errorPosition = 0;
 
         // Вычисление синдромов
         for (int i = 0; i < parityPositions.length; i++) {
             int parityIndex = parityPositions[i];
             int parity = 0;
-            for (int j = 0; j < 21; j++) {
+            for (int j = 0; j < 11; j++) {
                 if (((j + 1) & (parityIndex + 1)) != 0) {
                     parity ^= received[j];
                 }
@@ -81,7 +83,7 @@ public class HammingCodeSystem {
         }
 
         // Исправление ошибки
-        if (errorPosition > 0 && errorPosition <= 21) {
+        if (errorPosition > 0 && errorPosition <= 11) {
             System.out.println("Исправление ошибки в строке, позиция: " + errorPosition);
             received[errorPosition - 1] ^= 1;
         }
@@ -95,10 +97,13 @@ public class HammingCodeSystem {
 
         for (int col = 0; col < cols; col++) {
             int parity = 0;
-            for (int row = 0; row < rows - 1; row++) {
+            for (int row = 0; row < rows - 5; row++) {
                 parity ^= block[row][col];
             }
-            parity ^= block[rows - 1][col];
+            for (int row = rows - 5; row < rows; row++) {
+                parity ^= block[row][col];
+            }
+
             if (parity != 0) {
                 System.out.println("Исправление ошибки в столбце: " + col);
                 block[rows - 1][col] ^= 1;
@@ -116,7 +121,7 @@ public class HammingCodeSystem {
         do {
             System.out.println("Итерация декодирования: " + (iterations + 1));
             changed = false;
-            for (int i = 0; i < block.length - 1; i++) {
+            for (int i = 0; i < block.length - 5; i++) {
                 int[] original = block[i].clone();
                 block[i] = decodeHorizontal(block[i]);
                 if (!java.util.Arrays.equals(original, block[i])) {
@@ -192,7 +197,7 @@ public class HammingCodeSystem {
         printBlock(dataBits);
 
         // Горизонтальное кодирование
-        int[][] horizontalEncoded = new int[dataBits.length][21];
+        int[][] horizontalEncoded = new int[dataBits.length][11];
         for (int i = 0; i < dataBits.length; i++) {
             horizontalEncoded[i] = encodeHorizontal(dataBits[i]);
         }
