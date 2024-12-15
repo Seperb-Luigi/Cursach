@@ -179,7 +179,7 @@ public class HammingCodeSystem {
     // Главный метод для тестирования
     public static void main(String[] args) {
         Random random = new Random();
-        int[][] dataBits = new int[17][7];
+        int[][] dataBits = new int[16][7];
 
         // Генерация случайных данных 0 или 1
         for (int i = 0; i < dataBits.length; i++) {
