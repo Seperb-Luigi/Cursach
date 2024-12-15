@@ -88,6 +88,7 @@ public class HammingCodeSystem {
 
         for (int col = 0; col < cols; col++) {
             int parity = 0;
+            int errorRow = -1;
             for (int row = 0; row < rows - 1; row++) {
                 parity ^= block[row][col];
             }
