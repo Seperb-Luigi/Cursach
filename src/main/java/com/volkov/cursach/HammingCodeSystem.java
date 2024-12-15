@@ -4,17 +4,17 @@ import java.util.Random;
 
 public class HammingCodeSystem {
 
-    // Кодування одного рядка з використанням коду Хеммінгу (11, 7)
+    // Кодування одного рядка з використанням коду Хеммінгу (9, 5)
     public static int[] encodeHorizontal(int[] dataBits) {
-        if (dataBits.length != 7) {
-            throw new IllegalArgumentException("Довжина dataBits повинна дорівнювати 7.");
+        if (dataBits.length != 5) {
+            throw new IllegalArgumentException("Довжина dataBits повинна дорівнювати 5.");
         }
 
-        int[] encoded = new int[11]; // Підсумковий рядок із перевірочними бітами
+        int[] encoded = new int[9]; // Підсумковий рядок із перевірочними бітами
         int[] parityPositions = {0, 1, 3, 7}; // Позиції перевірочних бітів
 
         // Копіюємо інформаційні біти у закодоване повідомлення
-        for (int i = 0, j = 0; i < 11; i++) {
+        for (int i = 0, j = 0; i < 9; i++) {
             if (j < parityPositions.length && parityPositions[j] == i) {
                 j++; // Пропускаємо позиції для перевірочних бітів
             } else {
@@ -26,7 +26,7 @@ public class HammingCodeSystem {
         for (int i = 0; i < parityPositions.length; i++) {
             int parityIndex = parityPositions[i];
             int parity = 0;
-            for (int j = 0; j < 11; j++) {
+            for (int j = 0; j < 9; j++) {
                 // Перевіряємо, чи належить поточний біт до цієї групи перевірок
                 if (((j + 1) & (parityIndex + 1)) != 0) {
                     parity ^= encoded[j]; // Використовуємо XOR для розрахунку парності
@@ -38,7 +38,7 @@ public class HammingCodeSystem {
         return encoded;
     }
 
-    // Кодування блоку з 16 рядків із вертикальними перевірочними бітами (21, 11)
+    // Кодування блоку з 18 рядків із вертикальними перевірочними бітами (23, 18)
     public static int[][] encodeVertical(int[][] horizontalEncoded) {
         int rows = horizontalEncoded.length;
         int cols = horizontalEncoded[0].length;
@@ -63,7 +63,7 @@ public class HammingCodeSystem {
         return blockWithVerticalParity;
     }
 
-    // Декодування рядка з використанням коду Хеммінгу (11, 7)
+    // Декодування рядка з використанням коду Хеммінгу (9, 5)
     public static int[] decodeHorizontal(int[] received) {
         int[] parityPositions = {0, 1, 3, 7};
         int errorPosition = 0;
@@ -72,7 +72,7 @@ public class HammingCodeSystem {
         for (int i = 0; i < parityPositions.length; i++) {
             int parityIndex = parityPositions[i];
             int parity = 0;
-            for (int j = 0; j < 11; j++) {
+            for (int j = 0; j < 9; j++) {
                 if (((j + 1) & (parityIndex + 1)) != 0) {
                     parity ^= received[j];
                 }
@@ -82,9 +82,8 @@ public class HammingCodeSystem {
             }
         }
 
-        //
-        //Виправлення помилки
-        if (errorPosition > 0 && errorPosition <= 11) {
+        // Виправлення помилки
+        if (errorPosition > 0 && errorPosition <= 9) {
             System.out.println("Виправлення помилки у рядку, позиція: " + errorPosition);
             received[errorPosition - 1] ^= 1;
         }
@@ -106,7 +105,7 @@ public class HammingCodeSystem {
             }
 
             if (parity != 0) {
-                System.out.println("Виправлення помилки у стовпціе: " + col);
+                System.out.println("Виправлення помилки у стовпці: " + col);
                 block[rows - 1][col] ^= 1;
             }
         }
@@ -185,7 +184,7 @@ public class HammingCodeSystem {
     // Головний метод для тестування
     public static void main(String[] args) {
         Random random = new Random();
-        int[][] dataBits = new int[16][7];
+        int[][] dataBits = new int[18][5];
 
         // Генерація випадкових даних 0 або 1
         for (int i = 0; i < dataBits.length; i++) {
@@ -198,7 +197,7 @@ public class HammingCodeSystem {
         printBlock(dataBits);
 
         // Горизонтальне кодування
-        int[][] horizontalEncoded = new int[dataBits.length][11];
+        int[][] horizontalEncoded = new int[dataBits.length][9];
         for (int i = 0; i < dataBits.length; i++) {
             horizontalEncoded[i] = encodeHorizontal(dataBits[i]);
         }
