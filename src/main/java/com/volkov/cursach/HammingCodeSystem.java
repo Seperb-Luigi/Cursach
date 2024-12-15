@@ -209,7 +209,7 @@ public class HammingCodeSystem {
         printBlock(verticalEncoded);
 
         // Моделювання шуму
-        double noiseProbability = 0.025;
+        double noiseProbability = 0.015;
         int[][] noisyBlock = introduceNoise(verticalEncoded, noiseProbability);
 
         System.out.println("Блок із помилками:");
